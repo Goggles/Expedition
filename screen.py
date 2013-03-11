@@ -5,6 +5,20 @@ SCREEN_WIDTH = 80
 SCREEN_HEIGHT = 50
 LIMIT_FPS = 20
 
+MAP_WIDTH = 80
+MAP_HEIGHT = 45
+
+colour_dark_wall = libtcod.Color(0, 0, 100)
+colour_dark_ground = libtcod.Color(50, 50, 150)
+
+class Tile:
+	def __init__(self, blocked, block_sight = None):
+		self.blocked = blocked
+
+		if block_sight is None:
+			block_sight = blocked
+		self.block_sight = block_sight
+
 class Object:
 	#A generic object. Anything that has a position on the screen uses this - walls, npcs, the player.
 	def __init__(self, x, y, char, colour):
@@ -25,6 +39,34 @@ class Object:
 	def clear(self):
 		libtcod.console_put_char(con, self.x, self.y, ' ', libtcod.BKGND_NONE)
 
+def make_map():
+	global map
+
+	map = [[Tile(False)
+		for y in range(MAP_HEIGHT) ]
+			for x in range(MAP_WIDTH) ]
+	
+	map[30][22].blocked = True
+	map[30][22].block_sight = True
+	map[50][22].blocked = True
+	map[50][22].block_sight = True
+
+def render_all():
+	global colour_light_wall
+	global colour_light_ground
+
+	for y in range(MAP_HEIGHT):
+		for x in range(MAP_WIDTH):
+			wall = map[x][y].block_sight
+			if wall:
+				libtcod.console_set_char_background(con, x, y, colour_dark_wall, libtcod.BKGND_SET)
+			else:
+				libtcod.console_set_char_background(con, x, y, colour_dark_ground, libtcod.BKGND_SET)
+	
+	for object in objects:
+		object.draw()
+
+	libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
 
 def handle_keys():
 		
@@ -56,11 +98,11 @@ player = Object(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, '@', libtcod.white)
 npc = Object(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, '@', libtcod.yellow)
 objects = [npc, player]
 
+make_map()
+
 while not libtcod.console_is_window_closed():
-	for object in objects:
-		object.draw()
 	
-	libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
+	render_all()
 	libtcod.console_flush()
 
 	for object in objects:
