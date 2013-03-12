@@ -11,6 +11,8 @@ MAP_HEIGHT = 45
 colour_dark_wall = libtcod.Color(0, 0, 100)
 colour_dark_ground = libtcod.Color(50, 50, 150)
 
+
+#defines the state of a tile - is it able to be walked on and is it sight-blocking?
 class Tile:
 	def __init__(self, blocked, block_sight = None):
 		self.blocked = blocked
@@ -28,8 +30,9 @@ class Object:
 		self.colour = colour
 
 	def move(self, dx, dy):
-		self.x += dx
-		self.y += dy
+		if not map[self.x + dx][self.y + dy].blocked:
+			self.x += dx
+			self.y += dy
 
 	def draw(self):
 		#set the character and the colour
@@ -93,11 +96,12 @@ libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | 
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Expedition', False)
 con = libtcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
 
-
+#initialise the on-screen objects
 player = Object(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, '@', libtcod.white)
 npc = Object(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, '@', libtcod.yellow)
 objects = [npc, player]
 
+#initialise the map
 make_map()
 
 while not libtcod.console_is_window_closed():
