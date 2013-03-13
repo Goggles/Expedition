@@ -21,6 +21,13 @@ class Tile:
 			block_sight = blocked
 		self.block_sight = block_sight
 
+class Rect:
+	def __init__(self, x, y, w, h):
+		self.x1 = x
+		self.y1 = y
+		self.x2 = x + w
+		self.y2 = y + h
+
 class Object:
 	#A generic object. Anything that has a position on the screen uses this - walls, npcs, the player.
 	def __init__(self, x, y, char, colour):
