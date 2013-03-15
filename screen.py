@@ -34,6 +34,8 @@ class Tile:
 	def __init__(self, blocked, block_sight = None):
 		self.blocked = blocked
 
+		self.explored = False
+
 		if block_sight is None:
 			block_sight = blocked
 		self.block_sight = block_sight
@@ -143,23 +145,37 @@ def make_map():
 			num_rooms += 1
 
 def render_all():
-	global colour_light_wall
-	global colour_light_ground
+	global fov_map, colour_dark_wall, colour_light_wall
+	global colour_light_ground, colour_dark_ground
+	global fov_recompute
 
-	for y in range(MAP_HEIGHT):
-		for x in range(MAP_WIDTH):
-			wall = map[x][y].block_sight
-			if wall:
-				libtcod.console_set_char_background(con, x, y, colour_dark_wall, libtcod.BKGND_SET)
-			else:
-				libtcod.console_set_char_background(con, x, y, colour_dark_ground, libtcod.BKGND_SET)
-	
+	if fov_recompute:
+		fov_recompute = False
+		libtcod.map_compute_fov(fov_map, player.x, player.y, TORCH_RADIUS, FOV_LIGHT_WALLS, FOV_ALGO)
+
+		for y in range(MAP_HEIGHT):
+			for x in range(MAP_WIDTH):
+				visible = libtcod.map_is_in_fov(fov_map, x, y)
+				wall = map[x][y].block_sight
+				if not visible:
+					if map[x][y].explored:
+						if wall:
+							libtcod.console_set_char_background(con, x, y, colour_dark_wall, libtcod.BKGND_SET)
+						else:
+							libtcod.console_set_char_background(con, x, y, colour_dark_ground, libtcod.BKGND_SET)
+				else:
+					if wall:
+						libtcod.console_set_char_background(con, x, y, colour_light_wall, libtcod.BKGND_SET)
+					else:
+						libtcod.console_set_char_background(con, x, y, colour_light_ground, libtcod.BKGND_SET)
+					map[x][y].explored = True
 	for object in objects:
 		object.draw()
 
 	libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
 
 def handle_keys():
+	global fov_recompute
 		
 	key = libtcod.console_wait_for_keypress(True)
 	
@@ -171,12 +187,16 @@ def handle_keys():
 	#movement keys
 	if libtcod.console_is_key_pressed(libtcod.KEY_UP):
 		player.move(0, -1)
+		fov_recompute = True
 	elif libtcod.console_is_key_pressed(libtcod.KEY_DOWN):
 		player.move(0, 1)
+		fov_recompute = True
 	elif libtcod.console_is_key_pressed(libtcod.KEY_LEFT):
 		player.move(-1, 0)
+		fov_recompute = True
 	elif libtcod.console_is_key_pressed(libtcod.KEY_RIGHT):
 		player.move(1, 0)
+		fov_recompute = True
 
 #console initialization and main game loop
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
@@ -197,6 +217,7 @@ for y in range(MAP_HEIGHT):
 	for x in range(MAP_WIDTH):
 		libtcod.map_set_properties(fov_map, x, y, not map[x][y].block_sight, not map[x][y].blocked)
 
+fov_recompute = True
 
 while not libtcod.console_is_window_closed():
 	
