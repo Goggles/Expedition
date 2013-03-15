@@ -177,7 +177,7 @@ def render_all():
 def handle_keys():
 	global fov_recompute
 		
-	key = libtcod.console_wait_for_keypress(True)
+	key = libtcod.console_wait_for_keypress(libtcod.KEY_PRESSED)
 	
 	if key.vk == libtcod.KEY_ENTER and key.lalt:
 		#Alt+enter toggles fullscreen mode
@@ -185,18 +185,19 @@ def handle_keys():
 	elif key.vk == libtcod.KEY_ESCAPE:
 		return True #exit the game
 	#movement keys
-	if libtcod.console_is_key_pressed(libtcod.KEY_UP):
-		player.move(0, -1)
-		fov_recompute = True
-	elif libtcod.console_is_key_pressed(libtcod.KEY_DOWN):
-		player.move(0, 1)
-		fov_recompute = True
-	elif libtcod.console_is_key_pressed(libtcod.KEY_LEFT):
-		player.move(-1, 0)
-		fov_recompute = True
-	elif libtcod.console_is_key_pressed(libtcod.KEY_RIGHT):
-		player.move(1, 0)
-		fov_recompute = True
+	if key.vk == libtcod.KEY_CHAR:
+		if key.c == ord('w'):
+			player.move(0, -1)
+			fov_recompute = True
+		elif key.c == ord('s'):
+			player.move(0, 1)
+			fov_recompute = True
+		elif key.c == ord('a'):
+			player.move(-1, 0)
+			fov_recompute = True
+		elif key.c == ord('d'):
+			player.move(1, 0)
+			fov_recompute = True
 
 #console initialization and main game loop
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
