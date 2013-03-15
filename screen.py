@@ -16,8 +16,17 @@ ROOM_MAX_SIZE = 10
 ROOM_MIN_SIZE = 6
 MAX_ROOMS = 30
 
+#Field of View parameters
+FOV_ALGO = 0
+FOV_LIGHT_WALLS = True
+TORCH_RADIUS = 10
+
+
+
 colour_dark_wall = libtcod.Color(0, 0, 100)
+colour_light_wall = libtcod.Color(130, 110, 50)
 colour_dark_ground = libtcod.Color(50, 50, 150)
+colour_light_ground = libtcod.Color(200, 180, 50)
 
 
 #defines the state of a tile - is it able to be walked on and is it sight-blocking?
@@ -182,6 +191,12 @@ objects = [npc, player]
 
 #initialise the map
 make_map()
+
+fov_map = libtcod.map_new(MAP_WIDTH, MAP_HEIGHT)
+for y in range(MAP_HEIGHT):
+	for x in range(MAP_WIDTH):
+		libtcod.map_set_properties(fov_map, x, y, not map[x][y].block_sight, not map[x][y].blocked)
+
 
 while not libtcod.console_is_window_closed():
 	
