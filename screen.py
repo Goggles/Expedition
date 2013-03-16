@@ -22,7 +22,7 @@ FOV_LIGHT_WALLS = True
 TORCH_RADIUS = 10
 
 
-
+#Dungeon Colours
 colour_dark_wall = libtcod.Color(0, 0, 100)
 colour_light_wall = libtcod.Color(130, 110, 50)
 colour_dark_ground = libtcod.Color(50, 50, 150)
@@ -40,6 +40,7 @@ class Tile:
 			block_sight = blocked
 		self.block_sight = block_sight
 
+#defines a rectangle
 class Rect:
 	def __init__(self, x, y, w, h):
 		self.x1 = x
@@ -56,8 +57,9 @@ class Rect:
 		return (self.x1 <= other.x2 and self.x2 >= other.x1 and 
 			self.y1 <= other.y2 and self.y2 >= other.y1)
 
+
+#A generic object. Anything that has a position on the screen uses this - walls, npcs, the player.
 class Object:
-	#A generic object. Anything that has a position on the screen uses this - walls, npcs, the player.
 	def __init__(self, x, y, char, colour):
 		self.x = x
 		self.y = y
@@ -70,13 +72,15 @@ class Object:
 			self.y += dy
 
 	def draw(self):
-		#set the character and the colour
+		#sets the character and the colour
 		libtcod.console_set_default_foreground(con, self.colour)
 		libtcod.console_put_char(con, self.x, self.y, self.char, libtcod.BKGND_NONE)
 
 	def clear(self):
+		#clears the character from the old position
 		libtcod.console_put_char(con, self.x, self.y, ' ', libtcod.BKGND_NONE)
 
+#creates a room
 def create_room(room):
 	global map
 	
@@ -85,6 +89,7 @@ def create_room(room):
 			map[x][y].blocked = False
 			map[x][y].block_sight = False
 
+#creates a horizontal corridor
 def create_h_tunnel(x1, x2, y):
 	global map
 	
@@ -92,6 +97,7 @@ def create_h_tunnel(x1, x2, y):
 		map[x][y].blocked = False
 		map[x][y].block_sight = False
 
+#creates a vertical corridor
 def create_v_tunnel(y1, y2, x):
 	global map
 
@@ -102,7 +108,7 @@ def create_v_tunnel(y1, y2, x):
 def make_map():
 	global map, player
 
-	map = [[Tile(False)
+	map = [[Tile(True)
 		for y in range(MAP_HEIGHT) ]
 			for x in range(MAP_WIDTH) ]
 	rooms = []
@@ -184,7 +190,7 @@ def handle_keys():
 		libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
 	elif key.vk == libtcod.KEY_ESCAPE:
 		return True #exit the game
-	#movement keys
+	#movement keys - WASD
 	if key.vk == libtcod.KEY_CHAR:
 		if key.c == ord('w'):
 			player.move(0, -1)
