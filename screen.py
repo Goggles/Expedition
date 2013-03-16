@@ -105,6 +105,7 @@ def create_v_tunnel(y1, y2, x):
 		map[x][y].blocked = False
 		map[x][y].block_sight = False
 
+#makes the map in full
 def make_map():
 	global map, player
 
@@ -150,6 +151,7 @@ def make_map():
 			rooms.append(new_room)
 			num_rooms += 1
 
+#assigns colours to the map areas and calculates the field of view
 def render_all():
 	global fov_map, colour_dark_wall, colour_light_wall
 	global colour_light_ground, colour_dark_ground
@@ -180,6 +182,7 @@ def render_all():
 
 	libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
 
+#Handles all events relating to relevant key-presses
 def handle_keys():
 	global fov_recompute
 		
@@ -219,6 +222,7 @@ objects = [npc, player]
 #initialise the map
 make_map()
 
+#sets up the field of view
 fov_map = libtcod.map_new(MAP_WIDTH, MAP_HEIGHT)
 for y in range(MAP_HEIGHT):
 	for x in range(MAP_WIDTH):
