@@ -21,6 +21,9 @@ FOV_ALGO = 0
 FOV_LIGHT_WALLS = True
 TORCH_RADIUS = 10
 
+#Room contents variables
+MAX_ROOM_MONSTERS = 3
+
 
 #Dungeon Colours
 colour_dark_wall = libtcod.Color(0, 0, 100)
@@ -60,14 +63,16 @@ class Rect:
 
 #A generic object. Anything that has a position on the screen uses this - walls, npcs, the player.
 class Object:
-	def __init__(self, x, y, char, colour):
+	def __init__(self, x, y, char, name, colour, blocks=False):
 		self.x = x
 		self.y = y
 		self.char = char
+		self.name = name
 		self.colour = colour
+		self.blocks = blocks
 
 	def move(self, dx, dy):
-		if not map[self.x + dx][self.y + dy].blocked:
+		if not is_blocked(self.x + dx, self.y + dy):
 			self.x += dx
 			self.y += dy
 
@@ -79,6 +84,17 @@ class Object:
 	def clear(self):
 		#clears the character from the old position
 		libtcod.console_put_char(con, self.x, self.y, ' ', libtcod.BKGND_NONE)
+
+#checks if a tile is taken up by something that can block movement(player, npc, monster) or is a wall
+def is_blocked(x, y):
+	if map[x][y].blocked:
+		return True
+	
+	for object in objects:
+		if object.blocks and object.x == x and object.y == y:
+			return True
+
+	return False
 
 #creates a room
 def create_room(room):
@@ -149,7 +165,25 @@ def make_map():
 					create_h_tunnel(prev_x, new_x, new_y)
 
 			rooms.append(new_room)
+			place_objects(new_room)
 			num_rooms += 1
+
+#populates a given room with objects
+def place_objects(room):
+	num_monsters = libtcod.random_get_int(0, 0, MAX_ROOM_MONSTERS)
+	
+	
+	for i in range(num_monsters):
+		x = libtcod.random_get_int(0, room.x1, room.x2)
+		y = libtcod.random_get_int(0, room.y1, room.y2)
+		#this if is a bit limited, when more mobs are thought up, a more complex replacement will be made.
+		if not is_blocked(x, y):
+			if libtcod.random_get_int(0, 0, 100) < 80:
+				monster = Object(x, y, 'p', 'parasite', libtcod.desaturated_green, blocks=True)
+			else:
+				monster = Object(x, y, 'k', 'kree', libtcod.darker_green, blocks=True)
+		
+			objects.append(monster)
 
 #assigns colours to the map areas and calculates the field of view
 def render_all():
@@ -215,9 +249,8 @@ libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Expedition', False)
 con = libtcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 #initialise the on-screen objects
-player = Object(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, '@', libtcod.white)
-npc = Object(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, '@', libtcod.yellow)
-objects = [npc, player]
+player = Object(0, 0, '@', 'player', libtcod.white, blocks=True)
+objects = [player]
 
 #initialise the map
 make_map()
