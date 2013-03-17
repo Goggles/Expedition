@@ -103,22 +103,33 @@ class Object:
 		#sets the character and the colour
 		libtcod.console_set_default_foreground(con, self.colour)
 		libtcod.console_put_char(con, self.x, self.y, self.char, libtcod.BKGND_NONE)
-
+	
+	def send_to_back(self):
+		global objects
+		objects.remove(self)
+		objects.insert(0, self)
+	
 	def clear(self):
 		#clears the character from the old position
 		libtcod.console_put_char(con, self.x, self.y, ' ', libtcod.BKGND_NONE)
 
 #class defining combat properties
 class Fighter:
-	def __init__(self, hp, defence, power):
+	def __init__(self, hp, defence, power, death_function=None):
 		self.max_hp = hp
 		self.hp = hp
 		self.defence = defence
 		self.power = power
+		self.death_function = death_function
 
 	def take_damage(self, damage):
 		if damage > 0:
 			self.hp -= damage
+			
+			if self.hp <= 0:
+				function = self.death_function
+				if function is not None:
+					function(self.owner)
 	
 	def attack(self, target):
 		damage = self.power - target.fighter.defence
@@ -140,6 +151,25 @@ class BasicMonster:
 			elif player.fighter.hp > 0:
 				monster.fighter.attack(player)
 
+#changes the game state to dead, alerts the player that they are dead
+def player_death(player):
+	global game_state
+	print 'You died!'
+	game_state = 'dead'
+
+	player.char = '%'
+	player.colour = libtcod.dark_red
+
+#turns dead monsters into corpses
+def monster_death(monster):
+	print monster.name.capitalize() + ' is dead!'
+	monster.char = '%'
+	monster.colour = libtcod.dark_red
+	monster.blocks = False
+	monster.fighter = None
+	monster.ai = None
+	monster.name = 'remains of ' + monster.name
+	monster.send_to_back()
 
 #checks if a tile is taken up by something that can block movement(player, npc, monster) or is a wall
 def is_blocked(x, y):
@@ -235,12 +265,12 @@ def place_objects(room):
 		#this if is a bit limited, when more mobs are thought up, a more complex replacement will be made.
 		if not is_blocked(x, y):
 			if libtcod.random_get_int(0, 0, 100) < 80:
-				fighter_component = Fighter(hp=5, defence=0, power=2)
+				fighter_component = Fighter(hp=5, defence=0, power=2, death_function=monster_death)
 				ai_component = BasicMonster()
 				monster = Object(x, y, 'p', 'parasite', libtcod.desaturated_green, blocks=True, fighter=fighter_component,
 						ai=ai_component)
 			else:
-				fighter_component = Fighter(hp=10, defence=1, power=3)
+				fighter_component = Fighter(hp=10, defence=1, power=3, death_function=monster_death)
 				ai_component = BasicMonster()
 				monster = Object(x, y, 'k', 'kree', libtcod.darker_green, blocks=True, fighter=fighter_component,
 						ai=ai_component)
@@ -274,13 +304,17 @@ def render_all():
 						libtcod.console_set_char_background(con, x, y, colour_light_ground, libtcod.BKGND_SET)
 					map[x][y].explored = True
 	for object in objects:
-		object.draw()
+		if object != player:
+			object.draw()
+
+	player.draw()
 
 	libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
 	
 	libtcod.console_set_default_foreground(con, libtcod.white)
 	libtcod.console_print_ex(0, 1, SCREEN_HEIGHT - 2, libtcod.BKGND_NONE, libtcod.LEFT, 'HP: ' + str(player.fighter.hp) + str(player.fighter.max_hp))
 
+#determines whether the player moves or attacks(fancy that) - it checks whether there is something targetable, else, movement occurs.
 def player_move_or_attack(dx, dy):
 	global fov_recompute
 
@@ -289,7 +323,7 @@ def player_move_or_attack(dx, dy):
 
 	target = None
 	for object in objects:
-		if object.x == x and object.y == y:
+		if object.fighter and object.x == x and object.y == y:
 			target = object
 			break
 	
@@ -330,7 +364,7 @@ libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Expedition', False)
 con = libtcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 #initialise the player and components of them
-fighter_component = Fighter(hp=30, defence=2, power=5)
+fighter_component = Fighter(hp=30, defence=2, power=5, death_function=player_death)
 player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
 objects = [player]
 
