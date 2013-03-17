@@ -216,31 +216,47 @@ def render_all():
 
 	libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
 
+def player_move_or_attack(dx, dy):
+	global fov_recompute
+
+	x = player.x + dx
+	y = player.y + dy
+
+	target = None
+	for object in objects:
+		if object.x == x and object.y == y:
+			target = object
+			break
+	
+	if target is not None:
+		print 'The ' + target.name + ' laughs at your puny efforts to attack them!'
+	else:
+		player.move(dx, dy)
+		fov_recompute = True
+
 #Handles all events relating to relevant key-presses
 def handle_keys():
-	global fov_recompute
 		
-	key = libtcod.console_wait_for_keypress(libtcod.KEY_PRESSED)
+	key = libtcod.console_wait_for_keypress(True)
 	
 	if key.vk == libtcod.KEY_ENTER and key.lalt:
 		#Alt+enter toggles fullscreen mode
 		libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
 	elif key.vk == libtcod.KEY_ESCAPE:
 		return True #exit the game
-	#movement keys - WASD
-	if key.vk == libtcod.KEY_CHAR:
-		if key.c == ord('w'):
-			player.move(0, -1)
-			fov_recompute = True
-		elif key.c == ord('s'):
-			player.move(0, 1)
-			fov_recompute = True
-		elif key.c == ord('a'):
-			player.move(-1, 0)
-			fov_recompute = True
-		elif key.c == ord('d'):
-			player.move(1, 0)
-			fov_recompute = True
+	if game_state == 'playing':
+		#movement keys - WASD
+		if key.vk == libtcod.KEY_CHAR:
+			if key.c == ord('w'):
+				player_move_or_attack(0, -1)
+			elif key.c == ord('s'):
+				player_move_or_attack(0, 1)
+			elif key.c == ord('a'):
+				player_move_or_attack(-1, 0)
+			elif key.c == ord('d'):
+				player_move_or_attack(1, 0)
+			else:
+				return 'didnt-take-turn'
 
 #console initialization and main game loop
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
@@ -262,16 +278,24 @@ for y in range(MAP_HEIGHT):
 		libtcod.map_set_properties(fov_map, x, y, not map[x][y].block_sight, not map[x][y].blocked)
 
 fov_recompute = True
+game_state = 'playing'
+player_action = None
 
 while not libtcod.console_is_window_closed():
 	
 	render_all()
 	libtcod.console_flush()
-
+	
 	for object in objects:
 		object.clear()	
-
-	exit = handle_keys()
-	if exit:
+	
+	#player's turn
+	player_action = handle_keys()
+	if player_action == 'exit':
 		break
-
+	
+	#monster's turn
+	if game_state == 'playing' and player_action != 'didnt-take-turn':
+		for object in objects:
+			if object != player:
+				print 'The ' + object.name + ' screeches!'
