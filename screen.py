@@ -312,7 +312,7 @@ def render_all():
 	libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
 	
 	libtcod.console_set_default_foreground(con, libtcod.white)
-	libtcod.console_print_ex(0, 1, SCREEN_HEIGHT - 2, libtcod.BKGND_NONE, libtcod.LEFT, 'HP: ' + str(player.fighter.hp) + str(player.fighter.max_hp))
+	libtcod.console_print_ex(0, 1, SCREEN_HEIGHT - 2, libtcod.BKGND_NONE, libtcod.LEFT, 'HP: ' + str(player.fighter.hp) + '/' + str(player.fighter.max_hp))
 
 #determines whether the player moves or attacks(fancy that) - it checks whether there is something targetable, else, movement occurs.
 def player_move_or_attack(dx, dy):
