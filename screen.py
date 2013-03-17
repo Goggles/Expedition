@@ -8,9 +8,14 @@ SCREEN_WIDTH = 80
 SCREEN_HEIGHT = 50
 LIMIT_FPS = 20
 
+#Sizes and co-ordinates for the UI
+BAR_WIDTH = 20
+PANEL_HEIGHT = 7
+PANEL_Y = SCREEN_HEIGHT - PANEL_HEIGHT
+
 #Map size
 MAP_WIDTH = 80
-MAP_HEIGHT = 45
+MAP_HEIGHT = 43
 
 #dungeon generator parameters
 ROOM_MAX_SIZE = 10
@@ -311,8 +316,27 @@ def render_all():
 
 	libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
 	
-	libtcod.console_set_default_foreground(con, libtcod.white)
-	libtcod.console_print_ex(0, 1, SCREEN_HEIGHT - 2, libtcod.BKGND_NONE, libtcod.LEFT, 'HP: ' + str(player.fighter.hp) + '/' + str(player.fighter.max_hp))
+	libtcod.console_set_default_background(panel, libtcod.black)
+	libtcod.console_clear(panel)
+
+	render_bar(1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.light_red, libtcod.darker_red)
+
+	libtcod.console_blit(panel, 0, 0, SCREEN_WIDTH, PANEL_HEIGHT, 0, 0, PANEL_Y)
+	
+
+#renders the status panel part of the GUI
+def render_bar(x, y, total_width, name, value, maximum, bar_colour, back_colour):
+	bar_width = int(float(value) / maximum * total_width)
+	
+	libtcod.console_set_default_background(panel, back_colour)
+	libtcod.console_rect(panel, x, y, total_width, 1, False, libtcod.BKGND_SCREEN)
+
+	libtcod.console_set_default_background(panel, bar_colour)
+	if bar_width > 0:
+		libtcod.console_rect(panel, x, y, bar_width, 1, False, libtcod.BKGND_SCREEN)
+
+	libtcod.console_set_default_foreground(panel, libtcod.white)
+	libtcod.console_print_ex(panel, x + total_width / 2, y, libtcod.BKGND_NONE, libtcod.CENTER, name + ': ' + str(value) + '/' + str(maximum))
 
 #determines whether the player moves or attacks(fancy that) - it checks whether there is something targetable, else, movement occurs.
 def player_move_or_attack(dx, dy):
@@ -362,6 +386,8 @@ libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | 
 
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Expedition', False)
 con = libtcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
+panel = libtcod.console_new(SCREEN_WIDTH, PANEL_HEIGHT)
+
 
 #initialise the player and components of them
 fighter_component = Fighter(hp=30, defence=2, power=5, death_function=player_death)
