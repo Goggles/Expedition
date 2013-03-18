@@ -1,5 +1,7 @@
 import libtcodpy as libtcod
 import math
+import textwrap
+
 
 #Global, set variables
 
@@ -12,6 +14,11 @@ LIMIT_FPS = 20
 BAR_WIDTH = 20
 PANEL_HEIGHT = 7
 PANEL_Y = SCREEN_HEIGHT - PANEL_HEIGHT
+
+#Message bar attributes
+MSG_X = BAR_WIDTH + 2
+MSG_WIDTH = SCREEN_WIDTH - BAR_WIDTH - 2
+MSG_HEIGHT = PANEL_HEIGHT - 1
 
 #Map size
 MAP_WIDTH = 80
@@ -140,10 +147,10 @@ class Fighter:
 		damage = self.power - target.fighter.defence
 
 		if damage > 0:
-			print self.owner.name.capitalize() + ' attacks ' + target.name + ' for ' + str(damage) + ' hit points.'
+			message((self.owner.name.capitalize() + ' attacks ' + target.name + ' for ' + str(damage) + ' hit points.'), libtcod.white)
 			target.fighter.take_damage(damage)
 		else:
-			print self.owner.name.capitalize() + ' attacks ' + target.name + ' but it has no effect!'
+			message((self.owner.name.capitalize() + ' attacks ' + target.name + ' but it has no effect!'), libtcod.white)
 
 
 #class defining monsters
@@ -159,7 +166,7 @@ class BasicMonster:
 #changes the game state to dead, alerts the player that they are dead
 def player_death(player):
 	global game_state
-	print 'You died!'
+	message('You died!', libtcod.darker_red)
 	game_state = 'dead'
 
 	player.char = '%'
@@ -167,7 +174,7 @@ def player_death(player):
 
 #turns dead monsters into corpses
 def monster_death(monster):
-	print monster.name.capitalize() + ' is dead!'
+	message((monster.name.capitalize() + ' is dead!'), libtcod.red)
 	monster.char = '%'
 	monster.colour = libtcod.dark_red
 	monster.blocks = False
@@ -175,6 +182,16 @@ def monster_death(monster):
 	monster.ai = None
 	monster.name = 'remains of ' + monster.name
 	monster.send_to_back()
+
+#messages for the log
+def message(new_msg, colour = libtcod.white):
+	new_msg_lines = textwrap.wrap(new_msg, MSG_WIDTH)
+
+	for line in new_msg_lines:
+		if len(game_msgs) == MSG_HEIGHT:
+			del game_msgs[0]
+
+		game_msgs.append( (line, colour))
 
 #checks if a tile is taken up by something that can block movement(player, npc, monster) or is a wall
 def is_blocked(x, y):
@@ -318,7 +335,13 @@ def render_all():
 	
 	libtcod.console_set_default_background(panel, libtcod.black)
 	libtcod.console_clear(panel)
-
+	
+	y = 1
+	for (line, colour) in game_msgs:
+		libtcod.console_set_default_foreground(panel, colour)
+		libtcod.console_print_ex(panel, MSG_X, y, libtcod.BKGND_NONE, libtcod.LEFT, line)
+		y += 1
+	
 	render_bar(1, 1, BAR_WIDTH, 'HP', player.fighter.hp, player.fighter.max_hp, libtcod.light_red, libtcod.darker_red)
 
 	libtcod.console_blit(panel, 0, 0, SCREEN_WIDTH, PANEL_HEIGHT, 0, 0, PANEL_Y)
@@ -397,6 +420,9 @@ objects = [player]
 #initialise the map
 make_map()
 
+#create the list of game messages + colours
+game_msgs = []
+
 #sets up the field of view
 fov_map = libtcod.map_new(MAP_WIDTH, MAP_HEIGHT)
 for y in range(MAP_HEIGHT):
@@ -406,6 +432,8 @@ for y in range(MAP_HEIGHT):
 fov_recompute = True
 game_state = 'playing'
 player_action = None
+
+message('Welcome, lone crewmember! Good luck surviving in your wreaked ship...', libtcod.blue)
 
 while not libtcod.console_is_window_closed():
 	
