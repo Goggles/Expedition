@@ -95,7 +95,8 @@ class Object:
 		if not is_blocked(self.x + dx, self.y + dy):
 			self.x += dx
 			self.y += dy
-
+	
+	#For any object other than a player
 	def move_towards(self, target_x, target_y):
 		dx = target_x - self.x
 		dy = target_y - self.y
@@ -116,6 +117,7 @@ class Object:
 		libtcod.console_set_default_foreground(con, self.colour)
 		libtcod.console_put_char(con, self.x, self.y, self.char, libtcod.BKGND_NONE)
 	
+	#to ensure corpses do not get drawn over players/npcs/monsters
 	def send_to_back(self):
 		global objects
 		objects.remove(self)
@@ -332,6 +334,8 @@ def render_all():
 	player.draw()
 
 	libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
+	#################################
+	#Past this point, the GUI elements(message box, health, etc) are drawn
 	
 	libtcod.console_set_default_background(panel, libtcod.black)
 	libtcod.console_clear(panel)
@@ -429,14 +433,18 @@ for y in range(MAP_HEIGHT):
 	for x in range(MAP_WIDTH):
 		libtcod.map_set_properties(fov_map, x, y, not map[x][y].block_sight, not map[x][y].blocked)
 
+#Sets certain states - field of view recompute, the game state and player's action		
 fov_recompute = True
 game_state = 'playing'
 player_action = None
 
+#game starting message
 message('Welcome, lone crewmember! Good luck surviving in your wreaked ship...', libtcod.blue)
 
+#game loop
 while not libtcod.console_is_window_closed():
 	
+	#render everything anew
 	render_all()
 	libtcod.console_flush()
 	
