@@ -211,7 +211,7 @@ def look():
 	names = [obj.name for obj in objects
 		if libtcod.map_is_in_fov(fov_map, obj.x, obj.y)]
 	names = ', '.join(names)
-	return names.capitalize()
+	message(names.capitalize())
 
 #creates a room
 def create_room(room):
