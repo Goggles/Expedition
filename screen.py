@@ -206,6 +206,13 @@ def is_blocked(x, y):
 
 	return False
 
+#get the names of objects around the player(within field of view)
+def look():
+	names = [obj.name for obj in objects
+		if libtcod.map_is_in_fov(fov_map, obj.x, obj.y)]
+	names = ', '.join(names)
+	return names.capitalize()
+
 #creates a room
 def create_room(room):
 	global map
@@ -387,13 +394,14 @@ def player_move_or_attack(dx, dy):
 #Handles all events relating to relevant key-presses
 def handle_keys():
 		
-	key = libtcod.console_wait_for_keypress(True)
+	global key
 	
 	if key.vk == libtcod.KEY_ENTER and key.lalt:
 		#Alt+enter toggles fullscreen mode
 		libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
 	elif key.vk == libtcod.KEY_ESCAPE:
 		return True #exit the game
+
 	if game_state == 'playing':
 		#movement keys - WASD
 		if key.vk == libtcod.KEY_CHAR:
@@ -405,6 +413,16 @@ def handle_keys():
 				player_move_or_attack(-1, 0)
 			elif key.c == ord('d'):
 				player_move_or_attack(1, 0)
+			elif key.c == ord('q'):
+				player_move_or_attack(-1, -1)
+			elif key.c == ord('e'):
+				player_move_or_attack(1, -1)
+			elif key.c == ord('z'):
+				player_move_or_attack(-1, 1)
+			elif key.c == ord('x'):
+				player_move_or_attack(1, 1)
+			elif key.c == ord('l'):
+				look()
 			else:
 				return 'didnt-take-turn'
 
@@ -412,6 +430,7 @@ def handle_keys():
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
 
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Expedition', False)
+libtcod.sys_set_fps(LIMIT_FPS)
 con = libtcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
 panel = libtcod.console_new(SCREEN_WIDTH, PANEL_HEIGHT)
 
@@ -441,9 +460,13 @@ player_action = None
 #game starting message
 message('Welcome, lone crewmember! Good luck surviving in your wreaked ship...', libtcod.blue)
 
+key = libtcod.Key()
+mouse = libtcod.Mouse()
 #game loop
 while not libtcod.console_is_window_closed():
 	
+	libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS, key, mouse)
+
 	#render everything anew
 	render_all()
 	libtcod.console_flush()
