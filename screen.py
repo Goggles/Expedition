@@ -394,7 +394,7 @@ def player_move_or_attack(dx, dy):
 #Handles all events relating to relevant key-presses
 def handle_keys():
 		
-	global key
+	key = libtcod.console_wait_for_keypress(True)
 	
 	if key.vk == libtcod.KEY_ENTER and key.lalt:
 		#Alt+enter toggles fullscreen mode
@@ -460,12 +460,8 @@ player_action = None
 #game starting message
 message('Welcome, lone crewmember! Good luck surviving in your wreaked ship...', libtcod.blue)
 
-key = libtcod.Key()
-mouse = libtcod.Mouse()
 #game loop
 while not libtcod.console_is_window_closed():
-	
-	libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS, key, mouse)
 
 	#render everything anew
 	render_all()
