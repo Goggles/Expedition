@@ -41,6 +41,9 @@ TORCH_RADIUS = 10
 MAX_ROOM_MONSTERS = 3
 MAX_ROOM_ITEMS = 2
 
+#Item attributes
+HEAL_AMOUNT = 4
+
 #Dungeon Colours
 colour_dark_wall = libtcod.Color(0, 0, 100)
 colour_light_wall = libtcod.Color(130, 110, 50)
@@ -161,6 +164,11 @@ class Fighter:
 			target.fighter.take_damage(damage)
 		else:
 			message((self.owner.name.capitalize() + ' attacks ' + target.name + ' but it has no effect!'), libtcod.white)
+	
+	def heal(self, amount):
+		self.hp += amount
+		if self.hp > self.max_hp:
+			self.hp = self.max_hp
 
 
 #class defining monsters
@@ -175,6 +183,9 @@ class BasicMonster:
 
 #class defining the attributes and functionality of items
 class Item:
+	def __init__(self, use_function=None):
+		self.use_function = use_function
+
 	def pick_up(self):
 		if len(inventory) >= 26:
 			message('Your inventory is full, cannot pick up ' + self.owner.name + '.', libtcod.red)
@@ -182,6 +193,22 @@ class Item:
 			inventory.append(self.owner)
 			objects.remove(self.owner)
 			message('You picked up a ' + self.owner.name + '!', libtcod.green)
+
+	def use(self):
+		if self.use_function is None:
+			message('The ' + self.owner.name + ' cannot be used.')
+		else:
+			if self.use_function() != 'cancelled':
+				inventory.remove(self.owner)
+
+#heal function(this is used for restorative items and other methods)
+def cast_heal():
+	if player.fighter.hp == player.fighter.max_hp:
+		message('You are already at full health.', libtcod.red)
+		return 'cancelled'
+	
+	message('Your wounds start to feel better!', libtcod.light_violet)
+	player.fighter.heal(HEAL_AMOUNT)
 
 #changes the game state to dead, alerts the player that they are dead
 def player_death(player):
@@ -379,7 +406,7 @@ def place_objects(room):
 		y = libtcod.random_get_int(0, room.y1+1, room.y2-1)
 
 		if not is_blocked(x, y):
-			item_component = Item()
+			item_component = Item(use_function=cast_heal)
 			item = Object(x, y, '!', 'healing potion', libtcod.violet, item=item_component)
 
 			objects.append(item)
@@ -504,7 +531,9 @@ def handle_keys():
 				if key_char == 'l':
 					look()
 				elif key_char == 'i':
-					inventory_menu('Press the key next to an item to use it, or any other to cancel.\n')
+					chosen_item = inventory_menu('Press the key next to an item to use it, or any other to cancel.\n')
+					if chosen_item is not None:
+						chosen_item.use()
 				elif key_char == 'g':
 					for object in objects:
 						if object.x == player.x and object.y == player.y and object.item:
