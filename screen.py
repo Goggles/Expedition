@@ -10,6 +10,9 @@ SCREEN_WIDTH = 80
 SCREEN_HEIGHT = 50
 LIMIT_FPS = 20
 
+#Menu variables
+INVENTORY_WIDTH = 50
+
 #Sizes and co-ordinates for the UI
 BAR_WIDTH = 20
 PANEL_HEIGHT = 7
@@ -227,6 +230,53 @@ def look():
 		if libtcod.map_is_in_fov(fov_map, obj.x, obj.y)]
 	names = ', '.join(names)
 	message(names.capitalize())
+
+#generic menu
+def menu(header, options, width):
+	if len(options) > 26:
+		raise ValueError('Cannot have a menu with more than 26 options')
+	
+	header_height = libtcod.console_get_height_rect(con, 0, 0, width, SCREEN_HEIGHT, header)
+	height = len(options) + header_height
+
+	window = libtcod.console_new(width, height)
+
+	libtcod.console_set_default_foreground(window, libtcod.white)
+	libtcod.console_print_rect_ex(window, 0, 0, width, height, libtcod.BKGND_NONE, libtcod.LEFT, header)
+	
+	y = header_height
+	letter_index = ord('a')
+	for option_text in options:
+		text = '(' + chr(letter_index) + ')' + option_text
+		libtcod.console_print_ex(window, 0, y, libtcod.BKGND_NONE, libtcod.LEFT, text)
+		y += 1
+		letter_index += 1
+	
+	x = SCREEN_WIDTH/2 - width/2
+	y = SCREEN_HEIGHT/2 - height/2
+	libtcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 0.7)
+
+	libtcod.console_flush()
+	key = libtcod.console_wait_for_keypress(True)
+
+	index = key.c - ord('a')
+	if index >= 0 and index < len(options):
+		return index
+	
+	return None
+
+#inventory menu
+def inventory_menu(header):
+	if len(inventory) == 0:
+		options = ['Inventory is empty.']
+	else:
+		options = [item.name for item in inventory]
+
+	index = menu(header, options, INVENTORY_WIDTH)
+
+	if index is None or len(inventory) == 0:
+		return None
+	return inventory[index].item
 
 #creates a room
 def create_room(room):
@@ -453,6 +503,8 @@ def handle_keys():
 			else:
 				if key_char == 'l':
 					look()
+				elif key_char == 'i':
+					inventory_menu('Press the key next to an item to use it, or any other to cancel.\n')
 				elif key_char == 'g':
 					for object in objects:
 						if object.x == player.x and object.y == player.y and object.item:
