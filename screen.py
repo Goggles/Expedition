@@ -36,7 +36,7 @@ TORCH_RADIUS = 10
 
 #Room contents variables
 MAX_ROOM_MONSTERS = 3
-
+MAX_ROOM_ITEMS = 2
 
 #Dungeon Colours
 colour_dark_wall = libtcod.Color(0, 0, 100)
@@ -74,9 +74,9 @@ class Rect:
 			self.y1 <= other.y2 and self.y2 >= other.y1)
 
 
-#A generic object. Anything that has a position on the screen uses this - walls, npcs, the player.
+#A generic object. Anything that has a position on the screen uses this - walls, npcs, the player, etc.
 class Object:
-	def __init__(self, x, y, char, name, colour, blocks=False, fighter=None, ai=None):
+	def __init__(self, x, y, char, name, colour, blocks=False, fighter=None, ai=None, item=None):
 		self.x = x
 		self.y = y
 		self.char = char
@@ -90,6 +90,11 @@ class Object:
 		self.ai = ai
 		if self.ai:
 			self.ai.owner = self
+		
+		self.item = item
+		if self.item:
+			self.item.owner = self
+
 
 	def move(self, dx, dy):
 		if not is_blocked(self.x + dx, self.y + dy):
@@ -164,6 +169,16 @@ class BasicMonster:
 				monster.move_towards(player.x, player.y)
 			elif player.fighter.hp > 0:
 				monster.fighter.attack(player)
+
+#class defining the attributes and functionality of items
+class Item:
+	def pick_up(self):
+		if len(inventory) >= 26:
+			message('Your inventory is full, cannot pick up ' + self.owner.name + '.', libtcod.red)
+		else:
+			inventory.append(self.owner)
+			objects.remove(self.owner)
+			message('You picked up a ' + self.owner.name + '!', libtcod.green)
 
 #changes the game state to dead, alerts the player that they are dead
 def player_death(player):
@@ -291,8 +306,8 @@ def place_objects(room):
 	
 	
 	for i in range(num_monsters):
-		x = libtcod.random_get_int(0, room.x1, room.x2)
-		y = libtcod.random_get_int(0, room.y1, room.y2)
+		x = libtcod.random_get_int(0, room.x1+1, room.x2-1)
+		y = libtcod.random_get_int(0, room.y1+1, room.y2-1)
 		#this if is a bit limited, when more mobs are thought up, a more complex replacement will be made.
 		if not is_blocked(x, y):
 			if libtcod.random_get_int(0, 0, 100) < 80:
@@ -307,6 +322,18 @@ def place_objects(room):
 						ai=ai_component)
 		
 			objects.append(monster)
+	num_items = libtcod.random_get_int(0, 0, MAX_ROOM_ITEMS)
+
+	for i in range(num_items):
+		x = libtcod.random_get_int(0, room.x1+1, room.x2-1)
+		y = libtcod.random_get_int(0, room.y1+1, room.y2-1)
+
+		if not is_blocked(x, y):
+			item_component = Item()
+			item = Object(x, y, '!', 'healing potion', libtcod.violet, item=item_component)
+
+			objects.append(item)
+			item.send_to_back()
 
 #assigns colours to the map areas and calculates the field of view
 def render_all():
@@ -403,27 +430,34 @@ def handle_keys():
 		return True #exit the game
 
 	if game_state == 'playing':
-		#movement keys - WASD
+		#movement keys - WASDQEZX 
 		if key.vk == libtcod.KEY_CHAR:
-			if key.c == ord('w'):
+			key_char = chr(key.c)
+			if key_char == 'w':
 				player_move_or_attack(0, -1)
-			elif key.c == ord('s'):
+			elif key_char == 's':
 				player_move_or_attack(0, 1)
-			elif key.c == ord('a'):
+			elif key_char == 'a':
 				player_move_or_attack(-1, 0)
-			elif key.c == ord('d'):
+			elif key_char == 'd':
 				player_move_or_attack(1, 0)
-			elif key.c == ord('q'):
+			elif key_char == 'q':
 				player_move_or_attack(-1, -1)
-			elif key.c == ord('e'):
+			elif key_char == 'e':
 				player_move_or_attack(1, -1)
-			elif key.c == ord('z'):
+			elif key_char == 'z':
 				player_move_or_attack(-1, 1)
-			elif key.c == ord('x'):
+			elif key_char == 'x':
 				player_move_or_attack(1, 1)
-			elif key.c == ord('l'):
-				look()
+			
 			else:
+				if key_char == 'l':
+					look()
+				elif key_char == 'g':
+					for object in objects:
+						if object.x == player.x and object.y == player.y and object.item:
+							object.item.pick_up()
+							break
 				return 'didnt-take-turn'
 
 #console initialization and main game loop
@@ -445,6 +479,9 @@ make_map()
 
 #create the list of game messages + colours
 game_msgs = []
+
+#create the inventory
+inventory = []
 
 #sets up the field of view
 fov_map = libtcod.map_new(MAP_WIDTH, MAP_HEIGHT)
