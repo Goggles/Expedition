@@ -528,12 +528,17 @@ def handle_keys():
 				player_move_or_attack(1, 1)
 			
 			else:
+				#look command
 				if key_char == 'l':
 					look()
+				
+				#inventory menu
 				elif key_char == 'i':
 					chosen_item = inventory_menu('Press the key next to an item to use it, or any other to cancel.\n')
 					if chosen_item is not None:
 						chosen_item.use()
+
+				#pick up item
 				elif key_char == 'g':
 					for object in objects:
 						if object.x == player.x and object.y == player.y and object.item:
