@@ -505,8 +505,8 @@ def handle_keys():
 		libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
 	elif key.vk == libtcod.KEY_ESCAPE:
 		return True #exit the game
-
-	if game_state == 'playing':
+	#somewhere in this loop is the double keypress issue.
+	if game_state == 'playing': 
 		#movement keys - WASDQEZX 
 		if key.vk == libtcod.KEY_CHAR:
 			key_char = chr(key.c)
@@ -550,12 +550,12 @@ def handle_keys():
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
 
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'Expedition', False)
-libtcod.sys_set_fps(LIMIT_FPS)
+libtcod.sys_set_fps(LIMIT_FPS) # Possibly useless
 con = libtcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
 panel = libtcod.console_new(SCREEN_WIDTH, PANEL_HEIGHT)
 
 
-#initialise the player and components of them
+#initialise the player and components (combat, etc)
 fighter_component = Fighter(hp=30, defence=2, power=5, death_function=player_death)
 player = Object(0, 0, '@', 'player', libtcod.white, blocks=True, fighter=fighter_component)
 objects = [player]
