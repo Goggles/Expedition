@@ -508,43 +508,41 @@ def handle_keys():
 
 	if game_state == 'playing':
 		#movement keys - WASDQEZX 
-		if key.vk == libtcod.KEY_CHAR:
-			key_char = chr(key.c)
-			if key_char == 'w':
-				player_move_or_attack(0, -1)
-			elif key_char == 's':
-				player_move_or_attack(0, 1)
-			elif key_char == 'a':
-				player_move_or_attack(-1, 0)
-			elif key_char == 'd':
-				player_move_or_attack(1, 0)
-			elif key_char == 'q':
-				player_move_or_attack(-1, -1)
-			elif key_char == 'e':
-				player_move_or_attack(1, -1)
-			elif key_char == 'z':
-				player_move_or_attack(-1, 1)
-			elif key_char == 'x':
-				player_move_or_attack(1, 1)
+		key_char = chr(key.c)
+		if key_char == 'w':
+			player_move_or_attack(0, -1)
+		elif key_char == 's':
+			player_move_or_attack(0, 1)
+		elif key_char == 'a':
+			player_move_or_attack(-1, 0)
+		elif key_char == 'd':
+			player_move_or_attack(1, 0)
+		elif key_char == 'q':
+			player_move_or_attack(-1, -1)
+		elif key_char == 'e':
+			player_move_or_attack(1, -1)
+		elif key_char == 'z':
+			player_move_or_attack(-1, 1)
+		elif key_char == 'x':
+			player_move_or_attack(1, 1)
+		
+		else:
+			#look command
+			if key_char == 'l':
+				look()
 			
-			else:
-				#look command
-				if key_char == 'l':
-					look()
-				
-				#inventory menu
-				elif key_char == 'i':
-					chosen_item = inventory_menu('Press the key next to an item to use it, or any other to cancel.\n')
-					if chosen_item is not None:
-						chosen_item.use()
-
+			#inventory menu
+			elif key_char == 'i':
+				chosen_item = inventory_menu('Press the key next to an item to use it, or any other to cancel.\n')
+				if chosen_item is not None:
+					chosen_item.use()
 				#pick up item
-				elif key_char == 'g':
-					for object in objects:
-						if object.x == player.x and object.y == player.y and object.item:
-							object.item.pick_up()
-							break
-				return 'didnt-take-turn'
+			elif key_char == 'g':
+				for object in objects:
+					if object.x == player.x and object.y == player.y and object.item:
+						object.item.pick_up()
+						break
+			return 'didnt-take-turn'
 
 #console initialization and main game loop
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
