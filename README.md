@@ -3,7 +3,7 @@ Expedition
 
 A sci-fi roguelike, with horror elements. More puzzle and skill focused rather than combat focused.
 
-Written using the libtcod library.
+Written using the libtcod library. The library included is 1.5.1 linux 32bit version. When the game is complete, I will release versions with the appropriate libraries for different systems
 
 Story
 =====
