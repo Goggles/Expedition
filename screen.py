@@ -35,7 +35,7 @@ MAX_ROOMS = 30
 #Field of View parameters
 FOV_ALGO = 0
 FOV_LIGHT_WALLS = True
-TORCH_RADIUS = 10
+TORCH_RADIUS = 5
 
 #Room contents variables
 MAX_ROOM_MONSTERS = 3
@@ -45,10 +45,10 @@ MAX_ROOM_ITEMS = 2
 HEAL_AMOUNT = 4
 
 #Dungeon Colours
-colour_dark_wall = libtcod.Color(0, 0, 100)
-colour_light_wall = libtcod.Color(130, 110, 50)
-colour_dark_ground = libtcod.Color(50, 50, 150)
-colour_light_ground = libtcod.Color(200, 180, 50)
+colour_dark_wall = libtcod.Color(138, 138, 138)
+colour_light_wall = libtcod.Color(163, 163, 163)
+colour_dark_ground = libtcod.Color(196, 196, 196)
+colour_light_ground = libtcod.Color(222, 222, 222)
 
 
 #defines the state of a tile - is it able to be walked on and is it sight-blocking?
